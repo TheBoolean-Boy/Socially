@@ -11,6 +11,7 @@ function MobileNavbar() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { isSignedIn } = useAuth();
   const { theme, setTheme } = useTheme();
+  
 
   return (
     <div className="flex md:hidden items-center space-x-2">

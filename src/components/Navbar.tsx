@@ -18,7 +18,7 @@ const Navbar = async() => {
 
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-primary font-mono tracking-wider">
-              Socially
+              Deer Network
             </Link>
           </div>
 

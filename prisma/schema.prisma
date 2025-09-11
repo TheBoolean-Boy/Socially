@@ -35,7 +35,7 @@ model User{
 
 model Post{
   id String @id @default(cuid())
-  authodId String
+  authordId String
   content String?
   image String?
   createdAt DateTime @default(now())
@@ -43,7 +43,7 @@ model Post{
 
 
   // Relations
-  author User @relation(fields: [authodId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authordId], references: [id], onDelete: Cascade)
   // Cascade delete means upon deleting the account the user's post's will also be deleted
   comments Comment[]
   likes Like[]

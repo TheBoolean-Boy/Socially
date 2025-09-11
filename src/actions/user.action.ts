@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server"
+import { error } from "console";
 
 export const syncUser = async () => {
   try {
@@ -51,4 +52,48 @@ export const getUserByClerkId = async (clerkId: string) => {
       }
     }
   })
+}
+
+export async function getDbUserId() {
+  const { userId:clerkId } = await auth();
+  if(!clerkId)throw new Error ("Unauthorized");
+
+  const user = await getUserByClerkId(clerkId);
+  if(!user)throw new Error ("User not found");
+
+  return user.id;
+}
+
+export async function getRandomUsers() {
+  try {
+    const userId = await getDbUserId()
+
+    const randomUsers = await prisma.user.findMany({
+      where:{
+        AND:[ // I am using and here bcz I want to exclude suggestion from 2 condition. 1. Can't recommend self 2. Can't recommend following
+          {
+            NOT: {id: userId}
+          },
+          {
+            NOT:{
+              followers:{
+                some:{
+                  followerId: userId
+                }
+              }
+            }
+          }
+
+        ]
+      },
+      select:{
+        id:true,
+        
+      }
+    })
+
+    
+  } catch (error) {
+    
+  }
 }

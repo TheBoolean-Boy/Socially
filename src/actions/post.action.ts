@@ -8,6 +8,8 @@ export async function createPost(content:string, imageUrl:string){
   try {
     const userId = await getDbUserId();
 
+    if(!userId) return;
+    
     const post = await prisma.post.create({
       data:{
         authodId: userId,
@@ -21,5 +23,13 @@ export async function createPost(content:string, imageUrl:string){
   } catch (error) {
     console.error("Failed to create post", error)
     return {success: false, error: "Failed to create post"}
+  }
+}
+
+export async function getPost() {
+  try {
+    
+  } catch (error) {
+    
   }
 }

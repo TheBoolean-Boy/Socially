@@ -1,6 +1,8 @@
+"use server"
+
 import { prisma } from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server"
-import { error } from "console";
+import { revalidatePath } from "next/cache";
 
 export const syncUser = async () => {
   try {
@@ -56,7 +58,7 @@ export const getUserByClerkId = async (clerkId: string) => {
 
 export async function getDbUserId() {
   const { userId:clerkId } = await auth();
-  if(!clerkId)throw new Error ("Unauthorized");
+  if(!clerkId) return null
 
   const user = await getUserByClerkId(clerkId);
   if(!user)throw new Error ("User not found");
@@ -67,6 +69,8 @@ export async function getDbUserId() {
 export async function getRandomUsers() {
   try {
     const userId = await getDbUserId()
+
+    if(!userId) return []
 
     const randomUsers = await prisma.user.findMany({
       where:{
@@ -86,14 +90,85 @@ export async function getRandomUsers() {
 
         ]
       },
+
       select:{
         id:true,
-        
+        name: true,
+        username: true,
+        image: true,
+        _count:{
+          select:{
+            followers: true
+          }
+        }
+      },
+      take: 4
+
+    })
+
+    return randomUsers;
+  } catch (error) {
+    console.log("Error fetching random users", error)
+    return[]
+  }
+}
+
+export async function toggleFollow(targetUserId:string) {
+  try {
+    const userId = await getDbUserId() 
+
+    if(!userId) return
+
+    if(userId === targetUserId){
+      throw new Error("You can't follow yourself")
+      // return;
+    }
+    
+    const existingFollow = await prisma.follows.findUnique({
+      where:{
+        followerId_followingId:{
+          followerId: userId,
+          followingId: targetUserId
+        }
       }
     })
 
-    
+    if(existingFollow){
+      //unfollow
+      await prisma.follows.delete({
+        where:{
+          followerId_followingId:{
+            followerId: userId,
+            followingId: targetUserId
+          }
+        }
+      })
+    }
+    else{
+      //follow
+      //transaction basically takes promises either all of them succeed or none of them
+      await prisma.$transaction([
+        prisma.follows.create({
+          data:{
+            followerId: userId,
+            followingId: targetUserId
+          }
+        }),
+
+        prisma.notification.create({
+          data:{
+            type: 'FOLLOW',
+            userId: targetUserId,
+            creatorId: userId
+          }
+        })
+      ])
+    }
+
+    revalidatePath("/")
+    return {success: true}
   } catch (error) {
-    
+    console.log("Error in toggleFollow", error)
+    return {success: false, error: "Error toggling follow"}
   }
 }

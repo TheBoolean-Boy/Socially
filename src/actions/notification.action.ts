@@ -69,3 +69,4 @@ export async function markNotificationsAsRead(notificationID:string[]) {
     return{success: false}
   }
 }
+

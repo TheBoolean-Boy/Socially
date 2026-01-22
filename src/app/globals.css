@@ -1,10 +1,8 @@
-
-@import "tailwindcss";
-
-@import "uploadthing/tw/v4";
-@source "../../node_modules/@uploadthing/react/dist"; /** <-- depends on your project structure */
-
-@import "tw-animate-css";
+/* globals.css refactored for better readability */
+@import 'tailwindcss';
+@import 'uploadthing/tw/v4';
+@source '../../node_modules/@uploadthing/react/dist';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
